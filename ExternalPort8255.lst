@@ -1,0 +1,240 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	C:\Users\A.Setthawut\Desktop\Micro\Lab9\New folder\externalPort\ExternalPort8255.asm
+	Object File:	C:\Users\A.Setthawut\Desktop\Micro\Lab9\New folder\externalPort\ExternalPort8255.hex
+	List File:	C:\Users\A.Setthawut\Desktop\Micro\Lab9\New folder\externalPort\ExternalPort8255.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;-------------------------------------------------------
+    2:		N      003C	TEMP 	EQU 03CH
+    3:		B      00AD	PRESS	EQU IE.5
+    4:		B      00D1	P_AB	EQU PSW.1
+    5:		B      00D5	CHANGE	EQU PSW.5
+    6:
+    7:		N      9000	PORT_A EQU 9000H
+    8:		N      9001	PORT_B EQU 9001H
+    9:		N      9002	PORT_C EQU 9002H
+   10:		N      9003	CTRL    EQU 9003H
+   11:		N      0000		ORG 0000H
+   12:
+   13:	  0000	75 3C 32		MOV TEMP,#50
+   14:	  0003	90 90 03		MOV DPTR,#CTRL
+   15:	  0006	74 89			MOV A,#10001001B
+   16:	  0008	F0			MOVX @DPTR, A
+   17:	  0009	C2 AD			CLR PRESS
+   18:	  000B	7A 00		LOOP:	MOV R2,#00
+   19:	  000D	D2 D5			SETB CHANGE
+   20:	  000F	90 90 02	PRESS_A:MOV DPTR,#PORT_C
+   21:	  0012	E0			MOVX A,@DPTR
+   22:	  0013	44 FE			ORL A,#11111110B
+   23:	  0015	B4 FE 02		CJNE A,#11111110B,PRESS_B
+   24:	  0018	01 25			AJMP JUMP_A
+   25:	  001A	90 90 02	PRESS_B:MOV DPTR,#PORT_C
+   26:	  001D	E0			MOVX A,@DPTR
+   27:	  001E	44 FD			ORL A,#11111101B
+   28:	  0020	B4 FD 1A		CJNE A,#11111101B,CHANGEPRESS
+   29:	  0023	01 31			AJMP JUMP_B
+   30:
+   31:	  0025	C2 D1		JUMP_A:	CLR P_AB
+   32:	  0027	D2 AD			SETB PRESS
+   33:	  0029	90 90 01		MOV DPTR,#PORT_B
+   34:	  002C	74 00			MOV A,#00H
+   35:	  002E	F0			MOVX @DPTR,A
+   36:	  002F	01 0B			AJMP LOOP
+   37:	  0031	D2 D1		JUMP_B: SETB P_AB
+   38:	  0033	D2 AD			SETB PRESS
+   39:	  0035	90 90 00		MOV DPTR,#PORT_A
+   40:	  0038	74 00			MOV A,#00H
+   41:	  003A	F0			MOVX @DPTR,A
+   42:	  003B	01 0B			AJMP LOOP
+   43:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  003D	20 AD 02	CHANGEPRESS: JB PRESS,CHANGELOOP
+   45:	  0040	01 0B			AJMP LOOP
+   46:
+   47:	  0042	BA FF 06	CHANGELOOP:CJNE R2,#11111111B,ROTATE
+   48:	  0045	B2 D5			CPL CHANGE
+   49:	  0047	7A 00			MOV R2,#00
+   50:	  0049	01 5C			AJMP CHANGEPORT
+   51:
+   52:	  004B	20 D5 07	ROTATE:	JB CHANGE,RO_L
+   53:	  004E	EA		RO_R :	MOV A,R2
+   54:	  004F	03			RR A
+   55:	  0050	44 80			ORL A,#10000000B
+   56:	  0052	FA			MOV R2,A
+   57:	  0053	01 5C			AJMP CHANGEPORT
+   58:	  0055	EA		RO_L:	MOV A,R2
+   59:	  0056	23			RL A
+   60:	  0057	44 01			ORL A,#00000001B
+   61:	  0059	FA			MOV R2,A
+   62:	  005A	01 5C			AJMP CHANGEPORT
+   63:
+   64:	  005C	20 D1 0A	CHANGEPORT: JB P_AB,PORT_BB
+   65:	  005F	EA		PORT_AA: MOV A,R2
+   66:	  0060	90 90 00		MOV DPTR,#PORT_A
+   67:	  0063	F0			MOVX @DPTR,A
+   68:	  0064	11 73			ACALL DELAY
+   69:	  0066	02 00 0F		LJMP PRESS_A
+   70:	  0069	EA		PORT_BB:MOV A,R2
+   71:	  006A	90 90 01		MOV DPTR,#PORT_B
+   72:	  006D	F0			MOVX @DPTR,A
+   73:	  006E	11 73			ACALL DELAY
+   74:	  0070	02 00 0F		LJMP PRESS_A
+   75:
+   76:	  0073	AF 3C		DELAY:	MOV	R7, TEMP	; 1 M.Cycle
+   77:	  0075	7E 14		LOOP1:	MOV	R6,#20	; 1 M.Cycle
+   78:	  0077	7D 50		LOOP2:	MOV	R5,#80
+   79:	  0079	1D		LOOP3:	DEC	R5		; 1 M.Cycle
+   80:	  007A	BD 00 FC		CJNE	R5, #0, LOOP3; 2 M.Cycles
+   81:	  007D	1E			DEC	R6		; 1 M.Cycle
+   82:	  007E	BE 00 F6		CJNE	R6, #0, LOOP2; 2 M.Cycles
+   83:	  0081	1F			DEC	R7		; 1 M.Cycle
+   84:	  0082	BF 00 F0		CJNE	R7, #0, LOOP1; 2 M.Cycles
+   85:	  0085	22			RET			; 2 M.Cycles
+   86:					END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CHANGE				  NUMBER    00D5	   5
+CHANGELOOP			  CODE	    0042	  47
+CHANGEPORT			  CODE	    005C	  64
+CHANGEPRESS			  CODE	    003D	  44
+CTRL				  NUMBER    9003	  10
+CY				  BIT	      D7
+DELAY				  CODE	    0073	  76
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+JUMP_A				  CODE	    0025	  31
+JUMP_B				  CODE	    0031	  37
+LOOP				  CODE	    000B	  18
+LOOP1				  CODE	    0075	  77
+LOOP2				  CODE	    0077	  78
+LOOP3				  CODE	    0079	  79
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PORT_A				  NUMBER    9000	   7
+PORT_AA				  CODE	    005F	  65
+PORT_B				  NUMBER    9001	   8
+PORT_BB				  CODE	    0069	  70
+PORT_C				  NUMBER    9002	   9
+PRESS				  NUMBER    00AD	   3
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+PRESS_A				  CODE	    000F	  20
+PRESS_B				  CODE	    001A	  25
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+P_AB				  NUMBER    00D1	   4
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+ROTATE				  CODE	    004B	  52
+RO_L				  CODE	    0055	  58
+RO_R				  CODE	    004E	  53
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TEMP				  NUMBER    003C	   2
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+WR				  BIT	      B6
